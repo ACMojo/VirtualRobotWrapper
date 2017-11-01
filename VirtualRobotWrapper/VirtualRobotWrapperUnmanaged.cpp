@@ -60,14 +60,14 @@ bool VirtualRobotManipulabilityUnmanaged::Run(std::string filename)
 	}
 	catch (VirtualRobotException& e)
 	{
-		std::cout << " ERROR while creating robot" << std::endl;
+		std::cout << " ERROR while creating robot 1" << std::endl;
 		std::cout << e.what();
 		return false;
 	}
 
 	if (!robot)
 	{
-		std::cout << " ERROR while creating robot" << std::endl;
+		std::cout << " ERROR while creating robot 2" << std::endl;
 		return false;
 	}
 
@@ -75,15 +75,16 @@ bool VirtualRobotManipulabilityUnmanaged::Run(std::string filename)
 
 	try
 	{
-		VirtualRobot::RobotNodePtr tcp = robot->getRobotNode("TCP L");
+		//VirtualRobot::RobotNodePtr tcp = robot->getRobotNode("TCP L");
+		VirtualRobot::RobotNodePtr tcp = robot->getRobotNode("tcp");
 
 		std::cout << " TCP: " << tcp->getName() << std::endl;
 
-		VirtualRobot::RobotNodePtr rootNode = robot->getRobotNode("Armar3_Base");
+		VirtualRobot::RobotNodePtr rootNode = robot->getRobotNode("root");
 
 		std::cout << " RootNode: " << rootNode->getName() << std::endl;
 
-		VirtualRobot::RobotNodeSetPtr rns = robot->getRobotNodeSet("TorsoLeftArm");
+		VirtualRobot::RobotNodeSetPtr rns = robot->getRobotNodeSet("robotNodeSet");
 
 		std::cout << " RootNodeSet: " << rns->getName() << std::endl;
 
@@ -92,67 +93,109 @@ bool VirtualRobotManipulabilityUnmanaged::Run(std::string filename)
 		Eigen::Matrix4f gp;
 
 		// reset rob
-		gp = Eigen::Matrix4f::Identity();
-		robot->setGlobalPose(gp);
+		gp = robot->getGlobalPose();
 
 		std::cout << " Pose set..." << std::endl;
 
 		// CREATE REACHABILITY DATA
-		static float discrTr = 100.0f;
-		static float discrRot = 0.5f;
-		static float discrTr3 = discrTr*sqrt(3);
-		static float discrRot3 = discrRot*sqrt(3);
-		float minBounds[6] = { 0,0,0,0,0,0 };
-		float maxBounds[6] = { 10000.0f,10000.0f,10000.0f,2 * M_PI,2 * M_PI,2 * M_PI };
-		VirtualRobot::ReachabilityPtr reach(new VirtualRobot::Reachability(robot));
+		static float discrTr = 50.f;
+		static float discrRot = 0.2f;
 
-		std::cout << " Reachability created..." << std::endl;
+		//float minBounds[6];
+		//float maxBounds[6];
 
+		//VirtualRobot::ReachabilityPtr reachTest(new VirtualRobot::Reachability(robot));
 
-		reach->setOrientationType(VirtualRobot::WorkspaceRepresentation::RPY);
+		//reachTest->checkForParameters(rns, 1000, minBounds, maxBounds, rootNode, tcp);
 
-		std::cout << " OrientationType set..." << std::endl;
+		//VirtualRobot::ReachabilityPtr reach;
+		//reach.reset(new VirtualRobot::Reachability(robot));
 
-		reach->initialize(rns, discrTr, discrRot, minBounds, maxBounds, VirtualRobot::SceneObjectSetPtr(), VirtualRobot::SceneObjectSetPtr(), rootNode, tcp);
+		//std::cout << " Reachability created..." << std::endl;
+		//
+		//reach->setOrientationType(VirtualRobot::WorkspaceRepresentation::Hopf);
 
-		std::cout << " Reachability created..." << std::endl;
+		//std::cout << " OrientationType set..." << std::endl;
 
-		reach->addRandomTCPPoses(1000, 8, false);
+		////reach->initialize(rns, discrTr, discrRot, minBounds, maxBounds, VirtualRobot::SceneObjectSetPtr(), VirtualRobot::SceneObjectSetPtr(), rootNode, tcp);
 
-		std::cout << " 1000 random poses created..." << std::endl;
+		//std::cout << " Reachability created..." << std::endl;
 
-		reach->save("D:\\Temp\\reachability.bin");
+		////reach->addRandomTCPPoses(10000, 8, true);
 
-		std::cout << " File saved..." << std::endl;
+		//std::cout << " 1000 random poses created..." << std::endl;
 
-		reach->print();
+		////reach->save("C:\\Users\\alexa\\Desktop\\reachability.bin");
+
+		//std::cout << " File saved..." << std::endl;
+
+		//reach->print();
 
 		float minB[6];
 		float maxB[6];
 		float maxManip;
 		//// automatically determine parameters
 
-		ManipulabilityPtr manipulability(new Manipulability(robot));
+		ManipulabilityPtr manipulabilityTest(new Manipulability(robot));
+		manipulabilityTest->checkForParameters(rns, 10000, minB, maxB, maxManip, rootNode, tcp);
+	
+		minB[3] = 0.f;
+		minB[4] = 0.f;
+		minB[5] = 0.f;
 
-		manipulability->checkForParameters(rns, 2000, minB, maxB, maxManip, rootNode, tcp);
-		manipulability->initialize(rns, discrTr, discrRot, minBounds, maxBounds, VirtualRobot::SceneObjectSetPtr(), VirtualRobot::SceneObjectSetPtr(), rootNode, tcp);
+		maxB[3] = 6.28f;
+		maxB[4] = 6.28f;
+		maxB[5] = 6.28f;
+
+		ManipulabilityPtr manipulability;
+		manipulability.reset(new Manipulability(robot));
+		manipulability->initialize(rns, discrTr, discrRot, minB, maxB, VirtualRobot::SceneObjectSetPtr(), VirtualRobot::SceneObjectSetPtr(), rootNode, tcp);
 		manipulability->setMaxManipulability(maxManip);
-		//manipulability->addRandomTCPPoses(1000, 8, false);
+
+		manipulability->addRandomTCPPoses(10000, 1, false);
+
+		manipulability->print();
+
+		//manipulability->save("C:\\Users\\alexa\\Desktop\\manipulability.bin");
 
 		try
 		{
-			Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
+			float x[6];
 
-			manipulabilityAtPose = manipulability->getManipulabilityAtPose(pose);
+			x[0] = -149.f;
+			x[1] = 864.f;
+			x[2] = 20.f;
+			for (int i = 0; i < 360; i++)
+			{
+				x[3] = (float)i;
+				for (int j = 0; j < 360; i++)
+				{
+					x[4] = (float)j;
+					for (int k = 0; k < 360; i++)
+					{
+						x[5] = (float)k;
+
+
+						manipulability->vector2Matrix(x, gp);
+
+						manipulabilityAtPose = manipulability->getManipulabilityAtPose(gp);
+
+						if (manipulabilityAtPose > 0.000001f || manipulabilityAtPose < -0.0000001f)
+						{
+							std::cout << "ManipulabilityAtPose: " << manipulabilityAtPose << std::endl;
+						}
+					}
+				}
+
+			}
+
+			
 		}
 		catch (...)
 		{
 			std::cout << " ERROR while checking ManipulabilityAtPose" << std::endl;
 			return false;
 		}
-
-		manipulability->save("D:\\Temp\\manipulability.bin");
-		manipulability->print();
 	}
 	catch (const std::exception &e) 
 	{ 
