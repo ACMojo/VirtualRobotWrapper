@@ -26,11 +26,8 @@ VirtualRobotManipulabilityUnmanaged::~VirtualRobotManipulabilityUnmanaged()
 {
 }
 
-bool VirtualRobotManipulabilityUnmanaged::Run(std::string filename)
+bool VirtualRobotManipulabilityUnmanaged::Init(int argc, char** argv, std::string filename, std::string robotNodeSetName, std::string baseName, std::string tcpName)
 {
-	int argc = 0;
-	char** argv = NULL;
-
 	std::cout << " --- START --- " << std::endl;
 
 	VirtualRobot::init(argc, argv, "VirtualRobotManipulability");
@@ -49,25 +46,22 @@ bool VirtualRobotManipulabilityUnmanaged::Run(std::string filename)
 		}
 	}
 
-	std::cout << "Using robot at " << filename << std::endl;
+	std::cout << " Using robot at " << filename << std::endl;
 
 	// load robot
-	RobotPtr robot;
-
 	try
 	{
 		robot = RobotIO::loadRobot(filename);
 	}
 	catch (VirtualRobotException& e)
 	{
-		std::cout << " ERROR while creating robot 1" << std::endl;
-		std::cout << e.what();
+		std::cout << " ERROR while creating robot: " << e.what() << std::endl;
 		return false;
 	}
 
 	if (!robot)
 	{
-		std::cout << " ERROR while creating robot 2" << std::endl;
+		std::cout << " ERROR while creating robot -> not found" << std::endl;
 		return false;
 	}
 
@@ -75,142 +69,103 @@ bool VirtualRobotManipulabilityUnmanaged::Run(std::string filename)
 
 	try
 	{
-		//VirtualRobot::RobotNodePtr tcp = robot->getRobotNode("TCP L");
-		VirtualRobot::RobotNodePtr tcp = robot->getRobotNode("tcp");
+		tcp = robot->getRobotNode(tcpName);
 
 		std::cout << " TCP: " << tcp->getName() << std::endl;
 
-		VirtualRobot::RobotNodePtr rootNode = robot->getRobotNode("root");
+		baseNode = robot->getRobotNode(baseName);
 
-		std::cout << " RootNode: " << rootNode->getName() << std::endl;
+		std::cout << " RootNode: " << baseNode->getName() << std::endl;
 
-		VirtualRobot::RobotNodeSetPtr rns = robot->getRobotNodeSet("robotNodeSet");
+		rns = robot->getRobotNodeSet(robotNodeSetName);
 
 		std::cout << " RootNodeSet: " << rns->getName() << std::endl;
-
-		// CHECK ROBOT WORKSPACE
-		Eigen::Matrix4f tcpPose;
-		Eigen::Matrix4f gp;
-
-		// reset rob
-		gp = robot->getGlobalPose();
-
-		std::cout << " Pose set..." << std::endl;
-
-		// CREATE REACHABILITY DATA
-		static float discrTr = 50.f;
-		static float discrRot = 0.2f;
-
-		//float minBounds[6];
-		//float maxBounds[6];
-
-		//VirtualRobot::ReachabilityPtr reachTest(new VirtualRobot::Reachability(robot));
-
-		//reachTest->checkForParameters(rns, 1000, minBounds, maxBounds, rootNode, tcp);
-
-		//VirtualRobot::ReachabilityPtr reach;
-		//reach.reset(new VirtualRobot::Reachability(robot));
-
-		//std::cout << " Reachability created..." << std::endl;
-		//
-		//reach->setOrientationType(VirtualRobot::WorkspaceRepresentation::Hopf);
-
-		//std::cout << " OrientationType set..." << std::endl;
-
-		////reach->initialize(rns, discrTr, discrRot, minBounds, maxBounds, VirtualRobot::SceneObjectSetPtr(), VirtualRobot::SceneObjectSetPtr(), rootNode, tcp);
-
-		//std::cout << " Reachability created..." << std::endl;
-
-		////reach->addRandomTCPPoses(10000, 8, true);
-
-		//std::cout << " 1000 random poses created..." << std::endl;
-
-		////reach->save("C:\\Users\\alexa\\Desktop\\reachability.bin");
-
-		//std::cout << " File saved..." << std::endl;
-
-		//reach->print();
-
-		float minB[6];
-		float maxB[6];
-		float maxManip;
-		//// automatically determine parameters
-
-		ManipulabilityPtr manipulabilityTest(new Manipulability(robot));
-		manipulabilityTest->checkForParameters(rns, 10000, minB, maxB, maxManip, rootNode, tcp);
-	
-		minB[3] = 0.f;
-		minB[4] = 0.f;
-		minB[5] = 0.f;
-
-		maxB[3] = 6.28f;
-		maxB[4] = 6.28f;
-		maxB[5] = 6.28f;
-
-		ManipulabilityPtr manipulability;
-		manipulability.reset(new Manipulability(robot));
-		manipulability->initialize(rns, discrTr, discrRot, minB, maxB, VirtualRobot::SceneObjectSetPtr(), VirtualRobot::SceneObjectSetPtr(), rootNode, tcp);
-		manipulability->setMaxManipulability(maxManip);
-
-		manipulability->addRandomTCPPoses(10000, 1, false);
-
-		manipulability->print();
-
-		//manipulability->save("C:\\Users\\alexa\\Desktop\\manipulability.bin");
-
-		try
-		{
-			float x[6];
-
-			x[0] = -149.f;
-			x[1] = 864.f;
-			x[2] = 20.f;
-			for (int i = 0; i < 360; i++)
-			{
-				x[3] = (float)i;
-				for (int j = 0; j < 360; i++)
-				{
-					x[4] = (float)j;
-					for (int k = 0; k < 360; i++)
-					{
-						x[5] = (float)k;
-
-
-						manipulability->vector2Matrix(x, gp);
-
-						manipulabilityAtPose = manipulability->getManipulabilityAtPose(gp);
-
-						if (manipulabilityAtPose > 0.000001f || manipulabilityAtPose < -0.0000001f)
-						{
-							std::cout << "ManipulabilityAtPose: " << manipulabilityAtPose << std::endl;
-						}
-					}
-				}
-
-			}
-
-			
-		}
-		catch (...)
-		{
-			std::cout << " ERROR while checking ManipulabilityAtPose" << std::endl;
-			return false;
-		}
 	}
 	catch (const std::exception &e) 
 	{ 
-		std::cout << " ERROR while creating Manipulability: " << e.what() << std::endl;
+		std::cout << " ERROR while setting up robot: " << e.what() << std::endl;
 		return false;
 	}
 	catch (...)
 	{
-		std::cout << " ERROR while creating Manipulability" << std::endl;
+		std::cout << " ERROR while  setting up robot" << std::endl;
 		return false;
 	}
 
-	std::cout << "ManipulabilityAtPose: " << manipulabilityAtPose << std::endl;
+	std::cout << " --- DONE --- " << std::endl;
 
 	return true;
+}
+
+void VirtualRobotManipulabilityUnmanaged::GetManipulability(float discrTr, float discrRot, int loops)
+{
+	std::cout << " --- START --- " << std::endl;
+
+	if (!robot || !rns || !baseNode || !tcp)
+	{
+		std::cout << " No robot/robot data found " << std::endl;
+		return;
+	}
+
+	float minB[6];
+	float maxB[6];
+	float maxManip;
+
+	// automatically determine parameters
+	ManipulabilityPtr manipulabilityTest(new Manipulability(robot));
+	manipulabilityTest->checkForParameters(rns, 10000, minB, maxB, maxManip, baseNode, tcp);
+
+	minB[3] = 0.f;
+	minB[4] = 0.f;
+	minB[5] = 0.f;
+
+	maxB[3] = 6.28f;
+	maxB[4] = 6.28f;
+	maxB[5] = 6.28f;
+
+	ManipulabilityPtr manipulability;
+	manipulability.reset(new Manipulability(robot));
+
+	manipulability->initialize(rns, discrTr, discrRot, minB, maxB, VirtualRobot::SceneObjectSetPtr(), VirtualRobot::SceneObjectSetPtr(), baseNode, tcp);
+
+	manipulability->setMaxManipulability(maxManip);
+
+	manipulability->addRandomTCPPoses(loops, 1, false);
+
+	manipulability->print();
+
+	//manipulability->fillHoles();
+
+	WorkspaceDataPtr data = manipulability->getData();
+
+	for (unsigned int x = 0; x < data->getSize(0); x++)
+	{
+		for (unsigned int y = 0; y < data->getSize(1); y++)
+		{
+			for (unsigned int z = 0; z < data->getSize(2); z++)
+			{
+				for (unsigned int a = 0; a < data->getSize(3); a++)
+				{
+					for (unsigned int b = 0; b < data->getSize(4); b++)
+					{
+						for (unsigned int c = 0; c < data->getSize(5); c++)
+						{
+							if (data->hasEntry(x, y, z))
+							{
+								unsigned char e = data->get(x, y, z, a, b, c);
+								float ef = (float)e / 255.0f;
+
+								if (ef < -0.000001 && ef > 0.000001)
+									std::cout << "(" << x << "," << y << "," << z << "," << a << "," << b << "," << c << "): " << ef * maxManip << std::endl;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	std::cout << " --- DONE --- " << std::endl;
 }
 
 #pragma managed(pop)

@@ -28,7 +28,9 @@ namespace VirtualRobotWrapperTest
         {
             using (var wrapper = new VirtualRobotManipulability())
             {
-                wrapper.Run(Path.GetFullPath(@"C:\Users\alexa\source\repos\VirtualRobotWrapper\VirtualRobotWrapper\VirtualRobotWrapperTest\Data\Robots\ArmarIII\Puma560.xml"));
+                wrapper.Init(0, null, Path.GetFullPath(@"Data\Robots\Puma560\Puma560.xml"), "robotNodeSet", "root", "tcp");
+
+                wrapper.GetManipulability(50f, 0.2f, 1000);
             }
         }
 

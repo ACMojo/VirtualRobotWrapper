@@ -28,9 +28,17 @@ VirtualRobotManipulability::!VirtualRobotManipulability()
 	delete unmanagedWrapper; 
 }
 
-bool VirtualRobotManipulability::Run(System::String^ file)
+bool VirtualRobotManipulability::Init(int argc, array<String^>^ argv, String^ file, String^ robotNodeSetName, String^ baseName, String^ tcpName)
 {
 	std::string filename = msclr::interop::marshal_as<std::string>(file);
+	std::string robotNodeSetNameU = msclr::interop::marshal_as<std::string>(robotNodeSetName);
+	std::string baseNameU = msclr::interop::marshal_as<std::string>(baseName);
+	std::string tcpNameU = msclr::interop::marshal_as<std::string>(tcpName);
 
-	return unmanagedWrapper->Run(filename);
+	return unmanagedWrapper->Init(argc, NULL, filename, robotNodeSetNameU, baseNameU, tcpNameU);
+}
+
+void VirtualRobotWrapper::VirtualRobotManipulability::GetManipulability(float discrTr, float discrRot, int loops)
+{
+	return unmanagedWrapper->GetManipulability(discrTr, discrRot, loops);
 }
