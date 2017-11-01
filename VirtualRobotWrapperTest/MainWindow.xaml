@@ -9,8 +9,23 @@
     Height="350"
     Width="525">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        
         <Button
-            Content="Test"
-            Click="Button_Click" />
+            Grid.Row="0"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Content="Test VirtualRobot"
+            Click="ButtonVirtualRobot_Click" />
+
+        <Button
+            Grid.Row="1"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Content="Test OBB"
+            Click="ButtonOBB_Click" />
     </Grid>
 </Window>
