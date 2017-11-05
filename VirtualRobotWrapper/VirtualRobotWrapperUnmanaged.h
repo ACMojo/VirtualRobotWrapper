@@ -10,6 +10,16 @@ namespace VirtualRobotWrapper
 {
 	namespace Unmanaged
 	{
+		public struct Data {
+			unsigned int x;
+			unsigned int y;
+			unsigned int z;
+			unsigned int a;
+			unsigned int b;
+			unsigned int c;
+			float value;
+		};
+
 		public class VirtualRobotManipulabilityUnmanaged
 		{
 		public:
@@ -19,7 +29,7 @@ namespace VirtualRobotWrapper
 
 			bool Init(int argc, char** argv, std::string filename, std::string robotNodeSetName, std::string baseName, std::string tcpName);
 
-			void GetManipulability(float discrTr, float discrRot, int loops);
+			std::vector<Data> GetManipulability(float discrTr, float discrRot, int loops);
 
 		private:
 			VirtualRobot::RobotPtr robot = NULL;

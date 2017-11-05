@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "VirtualRobotWrapperUnmanaged.h"
 
@@ -97,14 +98,14 @@ bool VirtualRobotManipulabilityUnmanaged::Init(int argc, char** argv, std::strin
 	return true;
 }
 
-void VirtualRobotManipulabilityUnmanaged::GetManipulability(float discrTr, float discrRot, int loops)
+std::vector<Data> VirtualRobotManipulabilityUnmanaged::GetManipulability(float discrTr, float discrRot, int loops)
 {
 	std::cout << " --- START --- " << std::endl;
 
 	if (!robot || !rns || !baseNode || !tcp)
 	{
 		std::cout << " No robot/robot data found " << std::endl;
-		return;
+		return std::vector<Data>(0);
 	}
 
 	float minB[6];
@@ -113,7 +114,7 @@ void VirtualRobotManipulabilityUnmanaged::GetManipulability(float discrTr, float
 
 	// automatically determine parameters
 	ManipulabilityPtr manipulabilityTest(new Manipulability(robot));
-	manipulabilityTest->checkForParameters(rns, 10000, minB, maxB, maxManip, baseNode, tcp);
+	manipulabilityTest->checkForParameters(rns, 1000, minB, maxB, maxManip, baseNode, tcp);
 
 	minB[3] = 0.f;
 	minB[4] = 0.f;
@@ -138,25 +139,46 @@ void VirtualRobotManipulabilityUnmanaged::GetManipulability(float discrTr, float
 
 	WorkspaceDataPtr data = manipulability->getData();
 
-	for (unsigned int x = 0; x < data->getSize(0); x++)
+	unsigned int sizeX = data->getSize(0);
+	unsigned int sizeY = data->getSize(1);
+	unsigned int sizeZ = data->getSize(2);
+	unsigned int sizeA = data->getSize(3);
+	unsigned int sizeB = data->getSize(4);
+	unsigned int sizeC = data->getSize(5);
+
+	std::vector<Data> allResults;
+	allResults.reserve(data->getVoxelFilledCount());
+
+	for (unsigned int x = 0; x < sizeX; x++)
 	{
-		for (unsigned int y = 0; y < data->getSize(1); y++)
+		for (unsigned int y = 0; y < sizeY; y++)
 		{
-			for (unsigned int z = 0; z < data->getSize(2); z++)
+			for (unsigned int z = 0; z < sizeZ; z++)
 			{
-				for (unsigned int a = 0; a < data->getSize(3); a++)
+				for (unsigned int a = 0; a < sizeA; a++)
 				{
-					for (unsigned int b = 0; b < data->getSize(4); b++)
+					for (unsigned int b = 0; b < sizeB; b++)
 					{
-						for (unsigned int c = 0; c < data->getSize(5); c++)
+						for (unsigned int c = 0; c < sizeC; c++)
 						{
 							if (data->hasEntry(x, y, z))
 							{
 								unsigned char e = data->get(x, y, z, a, b, c);
 								float ef = (float)e / 255.0f;
 
-								if (ef < -0.000001 && ef > 0.000001)
-									std::cout << "(" << x << "," << y << "," << z << "," << a << "," << b << "," << c << "): " << ef * maxManip << std::endl;
+								if (e != 0)
+								{
+									Data result;
+									result.x = x;
+									result.y = y;
+									result.z = z;
+									result.a = a;
+									result.b = b;
+									result.c = c;
+									result.value = ef * maxManip;
+
+									allResults.push_back(result);
+								}
 							}
 						}
 					}
@@ -166,6 +188,8 @@ void VirtualRobotManipulabilityUnmanaged::GetManipulability(float discrTr, float
 	}
 
 	std::cout << " --- DONE --- " << std::endl;
+
+	return allResults;
 }
 
 #pragma managed(pop)

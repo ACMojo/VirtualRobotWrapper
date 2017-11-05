@@ -26,11 +26,20 @@ namespace VirtualRobotWrapperTest
 
         private void ButtonVirtualRobot_Click(object sender, RoutedEventArgs e)
         {
+            ManipulabilityVoxel[] result;
             using (var wrapper = new VirtualRobotManipulability())
             {
                 wrapper.Init(0, null, Path.GetFullPath(@"Data\Robots\Puma560\Puma560.xml"), "robotNodeSet", "root", "tcp");
 
-                wrapper.GetManipulability(50f, 0.2f, 1000);
+                result = wrapper.GetManipulability(50f, 0.2f, 10000);
+            }
+
+            if (result == null)
+                return;
+
+            foreach (var entry in result)
+            {
+                Console.WriteLine(@"[{0}, {1}, {2}, {3}, {4}, {5}] = {6}", entry.x, entry.y, entry.z, entry.a, entry.b, entry.c, entry.value);
             }
         }
 

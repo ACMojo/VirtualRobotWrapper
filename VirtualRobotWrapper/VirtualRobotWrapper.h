@@ -5,6 +5,16 @@
 using namespace System;
 
 namespace VirtualRobotWrapper {
+	public ref struct ManipulabilityVoxel {
+		unsigned int x;
+		unsigned int y;
+		unsigned int z;
+		unsigned int a;
+		unsigned int b;
+		unsigned int c;
+		float value;
+	};
+
 	public ref class VirtualRobotManipulability
 	{
 	public:
@@ -16,7 +26,7 @@ namespace VirtualRobotWrapper {
 
 		bool Init(int argc, array<String^>^ argv, String^ file, String^ robotNodeSetName, String^ baseName, String^ tcpName);
 
-		void GetManipulability(float discrTr, float discrRot, int loops);
+		array<ManipulabilityVoxel^>^ GetManipulability(float discrTr, float discrRot, int loops);
 
 	private:
 		VirtualRobotWrapper::Unmanaged::VirtualRobotManipulabilityUnmanaged* unmanagedWrapper;

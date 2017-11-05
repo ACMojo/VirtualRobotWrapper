@@ -38,7 +38,28 @@ bool VirtualRobotManipulability::Init(int argc, array<String^>^ argv, String^ fi
 	return unmanagedWrapper->Init(argc, NULL, filename, robotNodeSetNameU, baseNameU, tcpNameU);
 }
 
-void VirtualRobotWrapper::VirtualRobotManipulability::GetManipulability(float discrTr, float discrRot, int loops)
+array<ManipulabilityVoxel^>^ VirtualRobotWrapper::VirtualRobotManipulability::GetManipulability(float discrTr, float discrRot, int loops)
 {
-	return unmanagedWrapper->GetManipulability(discrTr, discrRot, loops);
+	std::vector<Unmanaged::Data> allResults = unmanagedWrapper->GetManipulability(discrTr, discrRot, loops);
+
+	array<ManipulabilityVoxel^>^ wrappedResult = gcnew array<ManipulabilityVoxel^>(allResults.size());
+
+	for (int i = 0; i < allResults.size(); i++) 
+	{
+		ManipulabilityVoxel^ voxel = gcnew ManipulabilityVoxel();
+
+		Unmanaged::Data result = allResults[i];
+
+		voxel->x = result.x;
+		voxel->y = result.y;
+		voxel->z = result.z;
+		voxel->a = result.a;
+		voxel->b = result.b;
+		voxel->c = result.c;
+		voxel->value = result.value;
+
+		wrappedResult[i] = voxel;
+	}
+
+	return wrappedResult;
 }
