@@ -61,7 +61,7 @@ array<ManipulabilityVoxel^>^ VirtualRobotWrapper::VirtualRobotManipulability::Ge
 
 	array<ManipulabilityVoxel^>^ wrappedResult = gcnew array<ManipulabilityVoxel^>(allResults.size());
 
-	for (int i = 0; i < allResults.size(); i++) 
+	for (size_t i = 0; i < allResults.size(); i++) 
 	{
 		ManipulabilityVoxel^ voxel = gcnew ManipulabilityVoxel();
 
