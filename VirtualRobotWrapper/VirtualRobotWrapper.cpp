@@ -15,6 +15,10 @@ VirtualRobotManipulability::VirtualRobotManipulability()
 {
 	unmanagedWrapper = new Unmanaged::VirtualRobotManipulabilityUnmanaged();
 
+	MinBox = gcnew array<float>(6);
+	MaxBox = gcnew array<float>(6);
+	MaxManipulability = 1;
+
 	std::cout << " --- CREATED --- " << std::endl;
 }
 
@@ -38,9 +42,22 @@ bool VirtualRobotManipulability::Init(int argc, array<String^>^ argv, String^ fi
 	return unmanagedWrapper->Init(argc, NULL, filename, robotNodeSetNameU, baseNameU, tcpNameU);
 }
 
-array<ManipulabilityVoxel^>^ VirtualRobotWrapper::VirtualRobotManipulability::GetManipulability(float discrTr, float discrRot, int loops)
+array<ManipulabilityVoxel^>^ VirtualRobotWrapper::VirtualRobotManipulability::GetManipulability(float discrTr, float discrRot, int loops, bool fillHoles, bool manipulabilityAsMinMaxRatio)
 {
-	std::vector<Unmanaged::Data> allResults = unmanagedWrapper->GetManipulability(discrTr, discrRot, loops);
+	return VirtualRobotWrapper::VirtualRobotManipulability::GetManipulability(discrTr, discrRot, loops, fillHoles, manipulabilityAsMinMaxRatio, false, 50.0);
+}
+
+array<ManipulabilityVoxel^>^ VirtualRobotWrapper::VirtualRobotManipulability::GetManipulability(float discrTr, float discrRot, int loops, bool fillHoles, bool manipulabilityAsMinMaxRatio, bool penalizeJointLimits, float jointLimitPenalizationFactor)
+{
+	std::vector<Unmanaged::Data> allResults = unmanagedWrapper->GetManipulability(discrTr, discrRot, loops, fillHoles, manipulabilityAsMinMaxRatio, penalizeJointLimits, jointLimitPenalizationFactor);
+	
+	for (int i = 0; i < 6; i++)
+		MinBox[i] = unmanagedWrapper->minB[i];
+
+	for (int i = 0; i < 6; i++)
+		MaxBox[i] = unmanagedWrapper->maxB[i];
+
+	MaxManipulability = unmanagedWrapper->maxManip;
 
 	array<ManipulabilityVoxel^>^ wrappedResult = gcnew array<ManipulabilityVoxel^>(allResults.size());
 

@@ -98,7 +98,7 @@ bool VirtualRobotManipulabilityUnmanaged::Init(int argc, char** argv, std::strin
 	return true;
 }
 
-std::vector<Data> VirtualRobotManipulabilityUnmanaged::GetManipulability(float discrTr, float discrRot, int loops)
+std::vector<Data> VirtualRobotManipulabilityUnmanaged::GetManipulability(float discrTr, float discrRot, int loops, bool fillHoles, bool manipulabilityAsMinMaxRatio, bool penalizeJointLimits, float jointLimitPenalizationFactor)
 {
 	std::cout << " --- START --- " << std::endl;
 
@@ -107,10 +107,6 @@ std::vector<Data> VirtualRobotManipulabilityUnmanaged::GetManipulability(float d
 		std::cout << " No robot/robot data found " << std::endl;
 		return std::vector<Data>(0);
 	}
-
-	float minB[6];
-	float maxB[6];
-	float maxManip;
 
 	// automatically determine parameters
 	ManipulabilityPtr manipulabilityTest(new Manipulability(robot));
@@ -127,15 +123,28 @@ std::vector<Data> VirtualRobotManipulabilityUnmanaged::GetManipulability(float d
 	ManipulabilityPtr manipulability;
 	manipulability.reset(new Manipulability(robot));
 
+	PoseQualityManipulability::ManipulabilityIndexType indexType = manipulabilityAsMinMaxRatio ? PoseQualityManipulability::ManipulabilityIndexType::eMinMaxRatio : PoseQualityManipulability::ManipulabilityIndexType::eMultiplySV;
+
+	if (penalizeJointLimits)
+	{
+		PoseQualityExtendedManipulabilityPtr m(new PoseQualityExtendedManipulability(robot->getRobotNodeSet(rns->getName()), indexType));
+	    m->penalizeJointLimits(true, jointLimitPenalizationFactor);
+		manipulability->setManipulabilityMeasure(m);
+	}
+	else 
+	{
+		PoseQualityManipulabilityPtr m(new PoseQualityManipulability(robot->getRobotNodeSet(rns->getName()), indexType));
+		manipulability->setManipulabilityMeasure(m);
+	}
+
 	manipulability->initialize(rns, discrTr, discrRot, minB, maxB, VirtualRobot::SceneObjectSetPtr(), VirtualRobot::SceneObjectSetPtr(), baseNode, tcp);
 
 	manipulability->setMaxManipulability(maxManip);
 
 	manipulability->addRandomTCPPoses(loops, 1, false);
 
-	manipulability->print();
-
-	//manipulability->fillHoles();
+	if (fillHoles)
+		manipulability->fillHoles();
 
 	WorkspaceDataPtr data = manipulability->getData();
 

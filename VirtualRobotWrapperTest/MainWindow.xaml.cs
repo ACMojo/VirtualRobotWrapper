@@ -27,20 +27,33 @@ namespace VirtualRobotWrapperTest
         private void ButtonVirtualRobot_Click(object sender, RoutedEventArgs e)
         {
             ManipulabilityVoxel[] result;
+            float[] maxB;
+            float[] minB;
+            float maxManip;
             using (var wrapper = new VirtualRobotManipulability())
             {
                 wrapper.Init(0, null, Path.GetFullPath(@"Data\Robots\Puma560\Puma560.xml"), "robotNodeSet", "root", "tcp");
 
-                result = wrapper.GetManipulability(50f, 0.2f, 10000);
+                result = wrapper.GetManipulability(50f, 0.2f, 10000, false, false, true, 50f);
+
+                minB = wrapper.MinBox;
+                maxB = wrapper.MaxBox;
+                maxManip = wrapper.MaxManipulability;
             }
 
             if (result == null)
                 return;
 
-            foreach (var entry in result)
+            for (var i = 0; i < Math.Min(10, result.Length); i++)
             {
+                var entry = result[i];
                 Console.WriteLine(@"[{0}, {1}, {2}, {3}, {4}, {5}] = {6}", entry.x, entry.y, entry.z, entry.a, entry.b, entry.c, entry.value);
             }
+
+            Console.WriteLine(@"Results: {0}", result.Length);
+            Console.WriteLine(@"Min: {0}, {1}, {2}, {3}, {4}, {5}", minB[0], minB[1], minB[2], minB[3], minB[4], minB[5]);
+            Console.WriteLine(@"Max: {0}, {1}, {2}, {3}, {4}, {5}", maxB[0], maxB[1], maxB[2], maxB[3], maxB[4], maxB[5]);
+            Console.WriteLine(@"Max. manipulability: {0}", maxManip);
         }
 
         private void ButtonOBB_Click(object sender, RoutedEventArgs e)

@@ -29,7 +29,11 @@ namespace VirtualRobotWrapper
 
 			bool Init(int argc, char** argv, std::string filename, std::string robotNodeSetName, std::string baseName, std::string tcpName);
 
-			std::vector<Data> GetManipulability(float discrTr, float discrRot, int loops);
+			std::vector<Data> GetManipulability(float discrTr, float discrRot, int loops, bool fillHoles, bool manipulabilityAsMinMaxRatio, bool penalizeJointLimits, float jointLimitPenalizationFactor);
+
+			float minB[6];
+			float maxB[6];
+			float maxManip;
 
 		private:
 			VirtualRobot::RobotPtr robot = NULL;
