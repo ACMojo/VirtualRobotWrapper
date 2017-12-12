@@ -125,17 +125,9 @@ std::vector<Data> VirtualRobotManipulabilityUnmanaged::GetManipulability(float d
 
 	PoseQualityManipulability::ManipulabilityIndexType indexType = manipulabilityAsMinMaxRatio ? PoseQualityManipulability::ManipulabilityIndexType::eMinMaxRatio : PoseQualityManipulability::ManipulabilityIndexType::eMultiplySV;
 
+	PoseQualityExtendedManipulabilityPtr m(new PoseQualityExtendedManipulability(rns, indexType));
 	if (penalizeJointLimits)
-	{
-		PoseQualityExtendedManipulabilityPtr m(new PoseQualityExtendedManipulability(robot->getRobotNodeSet(rns->getName()), indexType));
 	    m->penalizeJointLimits(true, jointLimitPenalizationFactor);
-		manipulability->setManipulabilityMeasure(m);
-	}
-	else 
-	{
-		PoseQualityManipulabilityPtr m(new PoseQualityManipulability(robot->getRobotNodeSet(rns->getName()), indexType));
-		manipulability->setManipulabilityMeasure(m);
-	}
 
 	manipulability->initialize(rns, discrTr, discrRot, minB, maxB, VirtualRobot::SceneObjectSetPtr(), VirtualRobot::SceneObjectSetPtr(), baseNode, tcp);
 
